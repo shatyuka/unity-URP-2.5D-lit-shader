@@ -1,5 +1,5 @@
-// Updated for URP 10.2.1/release
-// https://github.com/Unity-Technologies/Graphics/blob/10.2.1/release/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl
+// Updated for URP 12.1.6
+// https://github.com/Unity-Technologies/Graphics/blob/2021.2.16f1.4502/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl
 
 #ifndef UNIVERSAL_INPUT_SURFACE_INCLUDED
 #define UNIVERSAL_INPUT_SURFACE_INCLUDED
@@ -9,9 +9,14 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
-TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
-TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
-TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_MainTex);
+SAMPLER(sampler_MainTex);
+float4 _MainTex_TexelSize;
+float4 _MainTex_MipInfo;
+TEXTURE2D(_BumpMap);
+SAMPLER(sampler_BumpMap);
+TEXTURE2D(_EmissionMap);
+SAMPLER(sampler_EmissionMap);
 
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //
@@ -32,10 +37,10 @@ half Alpha(half albedoAlpha, half4 color, half cutoff)
 
 half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))
 {
-    return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
+    return half4(SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv));
 }
 
-half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)
+half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = half(1.0))
 {
 #ifdef _NORMALMAP
     half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);

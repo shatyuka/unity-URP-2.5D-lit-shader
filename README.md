@@ -15,8 +15,8 @@ The shader prevents 2D Sprites from clipping horribly into the 3D environment wh
 > "Feels good to not have my head inside these cabinets all day."
 
 ## Requirements
-* URP 10.2.1+
-* Unity 2020.2.1
+* URP 12.1.6
+* Unity 2021.2.16+
 
 > For older versions see branches (e.g. 2019.3)
 

@@ -1,5 +1,5 @@
-// Updated for URP 10.2.1/release
-// https://github.com/Unity-Technologies/Graphics/blob/10.2.1/release/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl
+// Updated for URP 12.1.6
+// https://github.com/Unity-Technologies/Graphics/blob/2021.2.16f1.4502/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl
 
 #ifndef UNIVERSAL_SHADOW_CASTER_PASS_INCLUDED
 #define UNIVERSAL_SHADOW_CASTER_PASS_INCLUDED
@@ -7,7 +7,11 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+// Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
+// For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+// For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 float3 _LightDirection;
+float3 _LightPosition;
 
 struct Attributes
 {
@@ -28,12 +32,18 @@ float4 GetShadowPositionHClip(Attributes input)
     float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
-    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+#else
+    float3 lightDirectionWS = _LightDirection;
+#endif
+
+    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
 #if UNITY_REVERSED_Z
-    positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
 #else
-    positionCS.z = max(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
 #endif
 
     return positionCS;
