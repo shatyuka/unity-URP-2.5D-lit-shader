@@ -19,6 +19,7 @@
 
 struct Attributes
 {
+    float4 color        : COLOR;
     float4 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float4 tangentOS    : TANGENT;
@@ -30,6 +31,8 @@ struct Attributes
 
 struct Varyings
 {
+    half4 color                    : COLOR;
+
     float2 uv                       : TEXCOORD0;
 
 #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
@@ -235,6 +238,8 @@ Varyings LitPassVertex(Attributes input)
     output.positionCS = vertexInput.positionCS;
     output.positionCS.z = BillboardVerticalZDepthVert(input, output);
 
+    output.color = input.color;
+
     return output;
 }
 
@@ -265,7 +270,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
 #endif
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData);
+    half4 color = UniversalFragmentPBR(inputData, surfaceData) * input.color.rgba;
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);

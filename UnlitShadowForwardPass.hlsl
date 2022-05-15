@@ -19,6 +19,7 @@
 
 struct Attributes
 {
+    float4 color        : COLOR;
     float4 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float4 tangentOS    : TANGENT;
@@ -30,6 +31,8 @@ struct Attributes
 
 struct Varyings
 {
+    half4 color                    : COLOR;
+
     float2 uv                       : TEXCOORD0;
 
 #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
@@ -235,6 +238,8 @@ Varyings LitPassVertex(Attributes input)
     output.positionCS = vertexInput.positionCS;
     output.positionCS.z = BillboardVerticalZDepthVert(input, output);
 
+    output.color = input.color;
+
     return output;
 }
 
@@ -267,7 +272,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     half2 uv = input.uv;
     half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
-    half4 color = texColor.rgba * _BaseColor.rgba;
+    half4 color = texColor.rgba * _BaseColor.rgba * input.color.rgba;
 
     // https://docs.unity3d.com/560/Documentation/Manual/SL-VertexFragmentShaderExamples.html
     Light light = GetMainLight(inputData.shadowCoord);
